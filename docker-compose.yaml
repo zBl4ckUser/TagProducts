@@ -1,0 +1,33 @@
+services:
+  database:
+    image: postgres:16
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tagproducts_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data
+
+  tagproducts_backend:
+    build: backend/
+    container_name: tagproducts_backend
+    restart: always
+    ports:
+      - "4000:4000"
+    env_file:
+      - backend/.env
+    depends_on:
+      - database
+    command: >
+      sh -c "
+        npx prisma generate &&
+        npx prisma db push &&
+        npm run dev
+      "
+
+volumes:
+  database_data:
