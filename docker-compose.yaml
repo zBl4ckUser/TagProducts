@@ -29,5 +29,14 @@ services:
         npm run dev
       "
 
+  tagproducts_frontend:
+    depends_on:
+      - tagproducts_backend
+    build: frontend/
+    container_name: tagproducts_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+
 volumes:
   database_data:
