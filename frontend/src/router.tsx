@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "./App";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProductListPage from "./pages/ProductListPage";
@@ -9,10 +9,10 @@ const router = createBrowserRouter([
         path: "/",
         element: <App />,
         children: [
-            // {
-            //     index: true,
-            //     element: <ProductListPage />
-            // },
+            {
+                index: true,
+                element: <Navigate to="produtos/exibir" replace />
+            },
             {
                 path: "produtos/exibir",
                 element: <ProductListPage />
