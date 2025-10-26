@@ -20,7 +20,6 @@ const createProduct = async (req: Request, res: Response) => {
   try {
     // Delay de 3 segundos
     await new Promise(resolve => setTimeout(resolve, 3000));
-
     // Valida o req.body de acordo com o schema Zod de Produto
     const validation = productSchema.safeParse(req.body);
 
@@ -64,7 +63,7 @@ const importProducts = async (req: Request, res: Response) => {
     let line = 1;
 
     const readable = new Readable();
-    readable._read = () => {};
+    readable._read = () => { };
     readable.push(req.file.buffer);
     readable.push(null);
 
