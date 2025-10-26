@@ -1,7 +1,8 @@
-import { Button, Card, CardActions, CardContent, CardMedia, Typography, Modal, Box, IconButton } from "@mui/material";
+import { Card, CardContent, CardMedia, Typography, Modal, Box, IconButton } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import type { Product } from "../types";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
     product: Product;
@@ -29,6 +30,7 @@ const formatCurrency = (value: number) => {
 
 export default function ProductCard({ product, openModal }: ProductCardProps) {
     const [open, setOpen] = useState(openModal || false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (openModal) {
@@ -36,8 +38,15 @@ export default function ProductCard({ product, openModal }: ProductCardProps) {
         }
     }, [openModal]);
 
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleOpen = () => {
+        setOpen(true);
+        navigate(`/produtos/exibir?idProduto=${product.id}`);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        navigate(`/produtos/exibir`);
+    };
 
     return (
         <>
@@ -47,10 +56,13 @@ export default function ProductCard({ product, openModal }: ProductCardProps) {
                 display: 'flex',
                 flexDirection: 'column',
                 transition: 'box-shadow 0.3s',
+                cursor: 'pointer',
                 '&:hover': {
                     boxShadow: 6,
                 }
-            }}>
+            }}
+                onClick={handleOpen}
+            >
                 <CardMedia
                     sx={{ height: 140, backgroundSize: 'contain' }}
                     image={product.imagem || "/img_notfound.svg"}
@@ -64,9 +76,6 @@ export default function ProductCard({ product, openModal }: ProductCardProps) {
                         {formatCurrency(product.preco)}
                     </Typography>
                 </CardContent>
-                <CardActions>
-                    <Button size="small" onClick={handleOpen}>Ver Detalhes</Button>
-                </CardActions>
             </Card>
             <Modal
                 open={open}
