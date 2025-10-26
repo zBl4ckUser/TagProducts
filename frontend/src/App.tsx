@@ -115,7 +115,7 @@ function App() {
         }}
       >
         <Typography variant="body2" >
-          © 2024 TagProducts - Desenvolvido para Tagview
+          TagProducts - Um desafio TagView
         </Typography>
       </Box>
     </>

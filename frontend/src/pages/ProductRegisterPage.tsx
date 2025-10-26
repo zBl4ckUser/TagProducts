@@ -1,13 +1,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { 
-    TextField, 
-    Button, 
-    Box, 
-    Typography, 
-    Alert, 
-    Paper, 
+import {
+    TextField,
+    Button,
+    Box,
+    Typography,
+    Alert,
+    Paper,
     CircularProgress,
     Container,
     InputAdornment,
@@ -18,16 +18,16 @@ import {
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../api";
 import { useState } from "react";
-import { 
-    AddCircleOutline, 
-    AttachMoney, 
-    Description, 
+import {
+    AddCircleOutline,
+    AttachMoney,
+    Description,
     Image as ImageIcon,
-    CheckCircle 
+    CheckCircle
 } from "@mui/icons-material";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
 const schema = z.object({
     nome: z.string()
@@ -39,9 +39,10 @@ const schema = z.object({
         .min(30, "A descrição deve ter no mínimo 30 caracteres")
         .max(255, "A descrição deve ter no máximo 255 caracteres"),
     imagem: z.any()
-        .refine((files) => files?.length == 1 ? files?.[0]?.size <= MAX_FILE_SIZE : true, `Tamanho máximo de 5MB.`)
-        .refine((files) => files?.length == 1 ? ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type) : true, "Apenas .jpg e .png são aceitos.")
-        .optional(),
+        .refine(files => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE, `Tamanho máximo de 5MB.`)
+        .refine(files => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files[0]?.type), "Apenas .jpg e .png são aceitos.")
+        .optional()
+        .nullable()
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -66,18 +67,21 @@ export default function ProductRegisterPage() {
     const onSubmit = async (data: FormValues) => {
         try {
             let imageBase64: string | null = null;
+
             if (data.imagem && data.imagem.length > 0) {
                 imageBase64 = await toBase64(data.imagem[0]);
             }
 
             const productData = {
-                ...data,
-                imagem: imageBase64,
+                nome: data.nome,
+                preco: data.preco,
+                descricao: data.descricao,
+                imagem: imageBase64
             };
 
             const result = await createProduct(productData);
-            navigate(`/produtos/exibir?idProduto=${result.id}`, { 
-                state: { successMessage: "Novo Produto Cadastrado!" } 
+            navigate(`/produtos/exibir?idProduto=${result.id}`, {
+                state: { successMessage: "Novo Produto Cadastrado!" }
             });
         } catch (error: any) {
             setBackendErrors([error.message]);
@@ -87,10 +91,10 @@ export default function ProductRegisterPage() {
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             <Fade in timeout={600}>
-                <Paper 
-                    elevation={3} 
-                    sx={{ 
-                        p: 5, 
+                <Paper
+                    elevation={3}
+                    sx={{
+                        p: 5,
                         borderRadius: 3,
                         background: 'white',
                         border: '1px solid rgba(102, 126, 234, 0.1)',
@@ -109,11 +113,11 @@ export default function ProductRegisterPage() {
                         >
                             <AddCircleOutline sx={{ fontSize: 48, color: 'white' }} />
                         </Box>
-                        <Typography 
-                            variant="h3" 
-                            component="h1" 
+                        <Typography
+                            variant="h3"
+                            component="h1"
                             gutterBottom
-                            sx={{ 
+                            sx={{
                                 fontWeight: 800,
                                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                 WebkitBackgroundClip: 'text',
@@ -130,9 +134,9 @@ export default function ProductRegisterPage() {
                     {/* Error Alert */}
                     {backendErrors.length > 0 && (
                         <Fade in>
-                            <Alert 
-                                severity="error" 
-                                sx={{ 
+                            <Alert
+                                severity="error"
+                                sx={{
                                     mb: 3,
                                     borderRadius: 2,
                                     fontWeight: 600
@@ -208,6 +212,7 @@ export default function ProductRegisterPage() {
                                     error={!!errors.descricao}
                                     helperText={errors.descricao?.message}
                                     disabled={isSubmitting}
+                                    inputProps={{ maxLength: 255 }}
                                     InputProps={{
                                         startAdornment: (
                                             <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 2 }}>
@@ -222,7 +227,7 @@ export default function ProductRegisterPage() {
                                     }}
                                 />
                                 <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Chip 
+                                    <Chip
                                         label={`${descricao?.length || 0} / 255 caracteres`}
                                         size="small"
                                         color={(descricao?.length || 0) >= 30 ? "success" : "default"}
@@ -234,7 +239,6 @@ export default function ProductRegisterPage() {
                             {/* Imagem */}
                             <Box>
                                 <TextField
-                                    {...register("imagem")}
                                     type="file"
                                     label="Imagem do Produto"
                                     fullWidth
@@ -251,15 +255,19 @@ export default function ProductRegisterPage() {
                                                 <ImageIcon color={errors.imagem ? "error" : "action"} />
                                             </InputAdornment>
                                         ),
+                                        inputProps: {
+                                            accept: "image/jpeg,image/jpg,image/png"
+                                        }
                                     }}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
                                             borderRadius: 2,
                                         }
                                     }}
+                                    {...register("imagem")}
                                 />
                                 {selectedImage && selectedImage.length > 0 && (
-                                    <Chip 
+                                    <Chip
                                         label={`Arquivo selecionado: ${selectedImage[0].name}`}
                                         size="small"
                                         color="success"
@@ -271,11 +279,11 @@ export default function ProductRegisterPage() {
 
                             {/* Submit Button */}
                             <Box sx={{ mt: 2, position: 'relative' }}>
-                                <Button 
-                                    type="submit" 
-                                    variant="contained" 
+                                <Button
+                                    type="submit"
+                                    variant="contained"
                                     size="large"
-                                    fullWidth 
+                                    fullWidth
                                     disabled={isSubmitting}
                                     startIcon={!isSubmitting && <AddCircleOutline />}
                                     sx={{

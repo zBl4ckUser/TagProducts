@@ -35,6 +35,7 @@ export default function ProductListPage() {
 
     const idProduto = searchParams.get("idProduto");
 
+    // vai mudar sempre que 'location' mudar de valor
     useEffect(() => {
         if (location.state?.successMessage) {
             setSuccessMessage(location.state.successMessage);
@@ -43,21 +44,23 @@ export default function ProductListPage() {
         }
     }, [location]);
 
-    // TODO: O fetchProducts está rodando duas vezes
+    // Vai rodar sempre que 'loading' mudar de valor
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const data = await getProducts();
-                setProducts(data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (loading) {
+            const fetchProducts = async () => {
+                try {
+                    const data = await getProducts();
+                    setProducts(data);
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-        fetchProducts();
-    }, []);
+            fetchProducts();
+        }
+    }, [loading]);
 
     const handleChangePage = (_event: React.ChangeEvent<unknown>, value: number) => {
         setPage(value);
@@ -69,6 +72,7 @@ export default function ProductListPage() {
         setPage(1);
     };
 
+    // React.SyntheticEvent é um wrapper dos eventos nativos do browser
     const handleSnackbarClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
             return;
@@ -76,13 +80,25 @@ export default function ProductListPage() {
         setSnackbarOpen(false);
     };
 
+    useEffect(() => {
+        if (idProduto) {
+            const productIndex = products.findIndex(p => String(p.id) === idProduto);
+            if (productIndex !== -1) {
+                const productPage = Math.floor(productIndex / itemsPerPage) + 1;
+                if (page !== productPage) {
+                    setPage(productPage);
+                }
+            }
+        }
+    }, [idProduto, products, itemsPerPage, page]);
+
     const paginatedProducts = itemsPerPage === products.length
         ? products
         : products.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
     if (loading) {
         return (
-            <LoadingProducts/>
+            <LoadingProducts />
         );
     }
 
@@ -235,13 +251,13 @@ export default function ProductListPage() {
                                 {paginatedProducts.map((product) => (
                                     <Grid
                                         key={`product-${product.id}`}
-                                        size={{
-                                            xs:12,
-                                            sm:6,
-                                            md:4,
-                                            lg:3
-                                        }}
 
+                                        fontSize={({
+                                            xs: 12,
+                                            sm: 6,
+                                            md: 4,
+                                            lg: 3
+                                        })}
                                     >
                                         <ProductCard
                                             product={product}
